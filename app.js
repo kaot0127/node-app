@@ -1,24 +1,37 @@
+const http = require('http');
+const fs = require('fs');
+
 let host = '192.168.33.10';
 let port = 3000;
 
-const http = require('http');
+var request;
+var response;
 
-var server = http.createServer(
-		(request, response) => {
-			response.setHeader('Content-Type', 'text/html');
-			response.write('<!DOCTYPE html><html lang="ja">');
-			response.write('<head><meta charset="utf-8">');
-			response.write('<title>Hello</title></head>');
-			response.write('<body><h1>Hello Node.js!</h1>');
-			response.write('<p>This is Node.js sample page.</p>');
-			response.write('<p>これは、Node.jsのサンプルページです。</p>');
-			response.write('</body></html>');
-			response.end();
-		}
-);
+var server = http.createServer(getFromClient);
 
 server.listen(port, host);
 console.log('Server running at http://'+host+':'+port+'/');
+
+// ここまでメインプログラム=========================
+
+// createSeverの処理
+function getFromClient(req, res) {
+	request = req;
+	response = res;
+	fs.readFile('./index.html', 'UTF-8', writeToResponse);
+}
+
+// readFile完了後の処理
+function writeToResponse(error, data) {
+	var content = data.
+		replace(/dummy_title/g, 'タイトルです').
+		replace(/dummy_content/g, 'これがコンテンツです。');
+
+	response.writeHead(200, {'Content-Type': 'text/html'});
+	response.write(content);
+	response.end();
+}
+
 
 /*
 var http = require('http');
