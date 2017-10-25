@@ -1,11 +1,14 @@
 const http = require('http');
 const fs = require('fs');
+const ejs = require('ejs');
+const url = require('url');
+
+const index_page = fs.readFileSync('./index.ejs', 'utf8');
+const other_page = fs.readFileSync('./other.ejs', 'utf8');
+const style_css = fs.readFileSync('./style.css', 'utf8');
 
 let host = '192.168.33.10';
 let port = 3000;
-
-var request;
-var response;
 
 var server = http.createServer(getFromClient);
 
@@ -15,21 +18,40 @@ console.log('Server running at http://'+host+':'+port+'/');
 // ここまでメインプログラム=========================
 
 // createSeverの処理
-function getFromClient(req, res) {
-	request = req;
-	response = res;
-	fs.readFile('./index.html', 'UTF-8', writeToResponse);
-}
+function getFromClient(request, response) {
+	var url_parts = url.parse(request.url);
+	switch (url_parts.pathname) {
+		case '/':
+			var content = ejs.render(index_page, {
+				title:"Indexページ",
+				content:"これはテンプレートを使ったサンプルページです。",
+			});
+			response.writeHead(200, {'Content-Type': 'text/html'});
+			response.write(content);
+			response.end();
+			break;
 
-// readFile完了後の処理
-function writeToResponse(error, data) {
-	var content = data.
-		replace(/dummy_title/g, 'タイトルです').
-		replace(/dummy_content/g, 'これがコンテンツです。');
+		case '/other':
+			var content = ejs.render(other_page, {
+				title:"Other",
+				content:"これは新しく用意したページです。",
+			});
+			response.writeHead(200, {'Content-Type': 'text/html'});
+			response.write(content);
+			response.end();
+			break;
 
-	response.writeHead(200, {'Content-Type': 'text/html'});
-	response.write(content);
-	response.end();
+		case '/style.css':
+			response.writeHead(200, {'Content-Type': 'text/css'});
+			response.write(style_css);
+			response.end();
+			break;
+
+		default:
+			response.writeHead(200, {'Content-Type': 'text/plain'});
+			response.end('no page...');
+			break;
+	}
 }
 
 
